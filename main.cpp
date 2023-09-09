@@ -15,17 +15,14 @@
 
 //=====[Declaration and initialization of public global objects]===============
 
-DigitalIn enterButton(BUTTON1);
-DigitalIn alarmTestButton(D2);
-DigitalIn aButton(D4);
-DigitalIn bButton(D5);
-DigitalIn cButton(D6);
-DigitalIn dButton(D7);
+
+
+BusIn buttons(BUTTON1, D2, D4, D5, D6, D7); // Botones Enter (BUTTON1), Test(D2), A (D4), B (D5), C (D6), D (D7)
+
 DigitalIn mq2(PE_12);
 
-DigitalOut alarmLed(LED1);
-DigitalOut incorrectCodeLed(LED3);
-DigitalOut systemBlockedLed(LED2);
+BusOut leds(LED1, LED3, LED2); // Led de Alarma, Led de Incorrecto, Led de Sistema Bloqueado
+
 
 DigitalInOut sirenPin(PE_10);
 
@@ -73,13 +70,21 @@ float analogReadingScaledWithTheLM35Formula( float analogReading );
 
 int main()
 {
-    inputsInit();
-    outputsInit();
-    while (true) {
-        alarmActivationUpdate();
-        alarmDeactivationUpdate();
-        uartTask();
-        delay(TIME_INCREMENT_MS);
+
+    inputsInit();       //Inicializacion de pines de entrada
+    outputsInit();      //Inicializacion de pines de salida
+    while (true) {      //Loop principal
+
+        bool enterButtonState = buttons[0]; //ENTER
+        bool alarmTestButtonState = buttons[1];//D3
+        bool aButtonState = buttons[2];//D4
+        bool bButtonState = buttons[3];//D5
+        bool cButtonState = buttons[4];//D6
+        bool dButtonState = buttons[5];//D7
+        alarmActivationUpdate();    //Actualizacion evento de activacion de alarma
+        alarmDeactivationUpdate();  //Actualizacion evento de desactivacion de alarma
+        uartTask();                 //Comunicacion por puerto serie
+        delay(TIME_INCREMENT_MS);   //Delay de 10ms
     }
 }
 
@@ -87,20 +92,20 @@ int main()
 
 void inputsInit()
 {
-    alarmTestButton.mode(PullDown);
-    aButton.mode(PullDown);
-    bButton.mode(PullDown);
-    cButton.mode(PullDown);
-    dButton.mode(PullDown);
+    buttons[1].mode(PullDown);
+    buttons[2].mode(PullDown);
+    buttons[3].mode(PullDown);
+    buttons[4].mode(PullDown);
+    buttons[5].mode(PullDown);
     sirenPin.mode(OpenDrain);
     sirenPin.input();
 }
 
 void outputsInit()
 {
-    alarmLed = OFF;
-    incorrectCodeLed = OFF;
-    systemBlockedLed = OFF;
+    alarmLedState = OFF;
+    incorrectCodeLedState = OFF;
+    systemBlockedLedState = OFF;
 }
 
 void alarmActivationUpdate()
@@ -135,7 +140,7 @@ void alarmActivationUpdate()
         overTempDetectorState = ON;
         alarmState = ON;
     }
-    if( alarmTestButton ) {             
+    if( alarmTestButtonState ) {             
         overTempDetectorState = ON;
         gasDetectorState = ON;
         alarmState = ON;
@@ -148,21 +153,21 @@ void alarmActivationUpdate()
         if( gasDetectorState && overTempDetectorState ) {
             if( accumulatedTimeAlarm >= BLINKING_TIME_GAS_AND_OVER_TEMP_ALARM ) {
                 accumulatedTimeAlarm = 0;
-                alarmLed = !alarmLed;
+                alarmLedState = !alarmLedState;
             }
         } else if( gasDetectorState ) {
             if( accumulatedTimeAlarm >= BLINKING_TIME_GAS_ALARM ) {
                 accumulatedTimeAlarm = 0;
-                alarmLed = !alarmLed;
+                alarmLedState = !alarmLedState;
             }
         } else if ( overTempDetectorState ) {
             if( accumulatedTimeAlarm >= BLINKING_TIME_OVER_TEMP_ALARM  ) {
                 accumulatedTimeAlarm = 0;
-                alarmLed = !alarmLed;
+                alarmLedState = !alarmLedState;
             }
         }
     } else{
-        alarmLed = OFF;
+        alarmLedState = OFF;
         gasDetectorState = OFF;
         overTempDetectorState = OFF;
         sirenPin.input();                                  
@@ -172,24 +177,24 @@ void alarmActivationUpdate()
 void alarmDeactivationUpdate()
 {
     if ( numberOfIncorrectCodes < 5 ) {
-        if ( aButton && bButton && cButton && dButton && !enterButton ) {
-            incorrectCodeLed = OFF;
+        if ( aButtonState && bButtonState && cButtonState && dButtonState && !enterButtonState ) {
+            incorrectCodeLedState = OFF;
         }
-        if ( enterButton && !incorrectCodeLed && alarmState ) {
-            buttonsPressed[0] = aButton;
-            buttonsPressed[1] = bButton;
-            buttonsPressed[2] = cButton;
-            buttonsPressed[3] = dButton;
+        if ( enterButtonState && !incorrectCodeLedState && alarmState ) {
+            buttonsPressed[0] = aButtonState;
+            buttonsPressed[1] = bButtonState;
+            buttonsPressed[2] = cButtonState;
+            buttonsPressed[3] = dButtonState;
             if ( areEqual() ) {
                 alarmState = OFF;
                 numberOfIncorrectCodes = 0;
             } else {
-                incorrectCodeLed = ON;
+                incorrectCodeLedState = ON;
                 numberOfIncorrectCodes++;
             }
         }
     } else {
-        systemBlockedLed = ON;
+        systemBlockedLedState = ON;
     }
 }
 
@@ -261,11 +266,11 @@ void uartTask()
             if ( incorrectCode == false ) {
                 uartUsb.write( "\r\nThe code is correct\r\n\r\n", 25 );
                 alarmState = OFF;
-                incorrectCodeLed = OFF;
+                incorrectCodeLedState = OFF;
                 numberOfIncorrectCodes = 0;
             } else {
                 uartUsb.write( "\r\nThe code is incorrect\r\n\r\n", 27 );
-                incorrectCodeLed = ON;
+                incorrectCodeLedState = ON;
                 numberOfIncorrectCodes++;
             }                
             break;
