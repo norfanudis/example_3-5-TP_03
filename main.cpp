@@ -37,6 +37,13 @@ bool alarmState    = OFF;
 bool incorrectCode = false;
 bool overTempDetector = OFF;
 
+bool enterButtonState = buttons[0]; //ENTER
+bool alarmTestButtonState = buttons[1];//D3
+bool aButtonState = buttons[2];//D4
+bool bButtonState = buttons[3];//D5
+bool cButtonState = buttons[4];//D6
+bool dButtonState = buttons[5];//D7
+
 int numberOfIncorrectCodes = 0;
 int buttonBeingCompared    = 0;
 int codeSequence[NUMBER_OF_KEYS]   = { 1, 1, 0, 0 };
@@ -75,12 +82,12 @@ int main()
     outputsInit();      //Inicializacion de pines de salida
     while (true) {      //Loop principal
 
-        bool enterButtonState = buttons[0]; //ENTER
-        bool alarmTestButtonState = buttons[1];//D3
-        bool aButtonState = buttons[2];//D4
-        bool bButtonState = buttons[3];//D5
-        bool cButtonState = buttons[4];//D6
-        bool dButtonState = buttons[5];//D7
+        enterButtonState = buttons[0]; //ENTER
+        alarmTestButtonState = buttons[1];//D3
+        aButtonState = buttons[2];//D4
+        bButtonState = buttons[3];//D5
+        cButtonState = buttons[4];//D6
+        dButtonState = buttons[5];//D7
         alarmActivationUpdate();    //Actualizacion evento de activacion de alarma
         alarmDeactivationUpdate();  //Actualizacion evento de desactivacion de alarma
         uartTask();                 //Comunicacion por puerto serie
@@ -103,9 +110,9 @@ void inputsInit()
 
 void outputsInit()
 {
-    alarmLedState = OFF;
-    incorrectCodeLedState = OFF;
-    systemBlockedLedState = OFF;
+    leds[0] = OFF;
+    leds[1] = OFF;
+    leds[2] = OFF;
 }
 
 void alarmActivationUpdate()
@@ -153,21 +160,21 @@ void alarmActivationUpdate()
         if( gasDetectorState && overTempDetectorState ) {
             if( accumulatedTimeAlarm >= BLINKING_TIME_GAS_AND_OVER_TEMP_ALARM ) {
                 accumulatedTimeAlarm = 0;
-                alarmLedState = !alarmLedState;
+                leds[0] = !leds[0];
             }
         } else if( gasDetectorState ) {
             if( accumulatedTimeAlarm >= BLINKING_TIME_GAS_ALARM ) {
                 accumulatedTimeAlarm = 0;
-                alarmLedState = !alarmLedState;
+                leds[0] = !leds[0];
             }
         } else if ( overTempDetectorState ) {
             if( accumulatedTimeAlarm >= BLINKING_TIME_OVER_TEMP_ALARM  ) {
                 accumulatedTimeAlarm = 0;
-                alarmLedState = !alarmLedState;
+                leds[0] = !leds[0];
             }
         }
     } else{
-        alarmLedState = OFF;
+        leds[0] = OFF;
         gasDetectorState = OFF;
         overTempDetectorState = OFF;
         sirenPin.input();                                  
@@ -178,9 +185,9 @@ void alarmDeactivationUpdate()
 {
     if ( numberOfIncorrectCodes < 5 ) {
         if ( aButtonState && bButtonState && cButtonState && dButtonState && !enterButtonState ) {
-            incorrectCodeLedState = OFF;
+            leds[1] = OFF;
         }
-        if ( enterButtonState && !incorrectCodeLedState && alarmState ) {
+        if ( enterButtonState && !leds[1] && alarmState ) {
             buttonsPressed[0] = aButtonState;
             buttonsPressed[1] = bButtonState;
             buttonsPressed[2] = cButtonState;
@@ -189,12 +196,12 @@ void alarmDeactivationUpdate()
                 alarmState = OFF;
                 numberOfIncorrectCodes = 0;
             } else {
-                incorrectCodeLedState = ON;
+                leds[1] = ON;
                 numberOfIncorrectCodes++;
             }
         }
     } else {
-        systemBlockedLedState = ON;
+        leds[2] = ON;
     }
 }
 
@@ -266,11 +273,11 @@ void uartTask()
             if ( incorrectCode == false ) {
                 uartUsb.write( "\r\nThe code is correct\r\n\r\n", 25 );
                 alarmState = OFF;
-                incorrectCodeLedState = OFF;
+                leds[1] = OFF;
                 numberOfIncorrectCodes = 0;
             } else {
                 uartUsb.write( "\r\nThe code is incorrect\r\n\r\n", 27 );
-                incorrectCodeLedState = ON;
+                leds[1] = ON;
                 numberOfIncorrectCodes++;
             }                
             break;
