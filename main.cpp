@@ -92,6 +92,8 @@ int main()
         alarmActivationUpdate();    //Actualizacion evento de activacion de alarma
         alarmDeactivationUpdate();  //Actualizacion evento de desactivacion de alarma
         uartTask();                 //Comunicacion por puerto serie
+        printf("Enter Button: %d, Alarm Test Button: %d, A Button: %d, B Button: %d, C Button: %d, D Button: %d, Alarm LED: %d\n",
+               enterButtonState, alarmTestButtonState, aButtonState, bButtonState, cButtonState, dButtonState, alarmState);
         delay(TIME_INCREMENT_MS);   //Delay de 10ms
     }
 }
