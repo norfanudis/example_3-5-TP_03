@@ -2,6 +2,7 @@
 
 #include "mbed.h"
 #include "arm_book_lib.h"
+#include <string.h>
 
 //=====[Defines]===============================================================
 
@@ -328,7 +329,7 @@ void uartTask()
         case 'f':
         case 'F':
             sprintf ( str, "Temperature: %.2f \xB0 F\r\n", 
-                celsiusToFahrenheit( lm35TempC ) );
+            celsiusToFahrenheit( lm35TempC ) );
             stringLength = strlen(str);
             uartUsb.write( str, stringLength );
             break;
