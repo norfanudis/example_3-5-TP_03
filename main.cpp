@@ -1,3 +1,31 @@
+/**
+ * @brief Control de Alarma de Gas y Temperatura
+ *
+ * Este código implementa un sistema de alarma que monitorea la detección de gas y
+ * la temperatura. El sistema se activa y desactiva mediante una secuencia de botones.
+ * También se pueden realizar consultas a través de UART para verificar el estado de la alarma
+ * y obtener lecturas de sensores. El código utiliza MBED para controlar los pines y la comunicación UART.
+ *
+ *
+ * @note Asegúrese de que estén conectados los botones/switches a 3.3V y los pines D2, D3, D4, D5, D6 y D7.
+ * @note Se utiliza una resistencia pull-down, por lo que los botones/switches deben conectarse a 3.3V.
+ * Si se utilizara pull-up, se conectarían a GND.
+ *
+ * Ventajas de esta implementación:
+ *
+ * 1. El código es más legible y organizado al utilizar BusIn y BusOut para agrupar las
+ *    entradas y salidas digitales.
+ * 2. Facilita la expansión del código para agregar más entradas/salidas en el futuro
+ *    sin modificar significativamente la lógica existente.
+ * 3. Las líneas de printf proporcionan una visión clara del estado de las entradas y 
+ *    salidas digitales en cada iteración, lo que facilita la depuración.
+ *
+ * Desventajas de esta implementación:
+ *
+ * - El código puede parecer un poco más largo debido a las declaraciones adicionales
+ *   para configurar BusIn y BusOut, pero esta desventaja es mínima en comparación con
+ *   las ventajas en términos de legibilidad y escalabilidad.
+ */
 //=====[Libraries]=============================================================
 
 #include "mbed.h"
@@ -94,6 +122,7 @@ int main()
         uartTask();                 //Comunicacion por puerto serie
         printf("Enter Button: %d, Alarm Test Button: %d, A Button: %d, B Button: %d, C Button: %d, D Button: %d, Alarm LED: %d\n",
                enterButtonState, alarmTestButtonState, aButtonState, bButtonState, cButtonState, dButtonState, alarmState);
+        //printf("Valor potenciometro %f \n",lm35.read());
         delay(TIME_INCREMENT_MS);   //Delay de 10ms
     }
 }
